@@ -9,46 +9,30 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @RestController
 @RequestMapping("/api/notes")
 public class NoteController {
 
-    private final Map<String, List<Note>> userNotes = new ConcurrentHashMap<>();
-
-    private String getUserEmail() {
-        OAuth2AuthenticationToken auth = (OAuth2AuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
-        return auth.getPrincipal().getAttribute("email");
-    }
+    private final Map<Integer, Note> notes = new ConcurrentHashMap<>();
+    private final AtomicInteger idCounter = new AtomicInteger();
 
     @GetMapping
-    public List<Note> getNotes() {
-        return userNotes.getOrDefault(getUserEmail(), new ArrayList<>());
+    public Collection<Note> getAllNotes() {
+        return notes.values();
     }
 
     @PostMapping
-    public Note createNote(@RequestBody Note note) {
-        note.setId(UUID.randomUUID().toString());
-        userNotes.computeIfAbsent(getUserEmail(), k -> new ArrayList<>()).add(note);
+    public Note addNote(@RequestBody Note note) {
+        int id = idCounter.incrementAndGet();
+        note.setId(id);
+        notes.put(id, note);
         return note;
     }
 
-    @PutMapping("/{id}")
-    public Note updateNote(@PathVariable String id, @RequestBody Note note) {
-        List<Note> notes = userNotes.get(getUserEmail());
-        for (int i = 0; i < notes.size(); i++) {
-            if (notes.get(i).getId().equals(id)) {
-                notes.set(i, note);
-                return note;
-            }
-        }
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-    }
-
     @DeleteMapping("/{id}")
-    public void deleteNote(@PathVariable String id) {
-        List<Note> notes = userNotes.get(getUserEmail());
-        notes.removeIf(note -> note.getId().equals(id));
+    public void deleteNote(@PathVariable int id) {
+        notes.remove(id);
     }
 }
-
