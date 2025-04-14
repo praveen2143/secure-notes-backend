@@ -1,6 +1,5 @@
 package com.example.securenotes.config;
 
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -21,10 +20,8 @@ public class SecurityConfig {
                 .csrf().disable()
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/error").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .oauth2Login()
-                .defaultSuccessUrl("https://secure-notes-frontend.vercel.app", true);
+                        .anyRequest().permitAll() // No login required
+                );
         return http.build();
     }
 
