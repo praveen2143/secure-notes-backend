@@ -26,7 +26,7 @@ public class NoteController {
     @PostMapping
     public Note addNote(@RequestBody Note note) {
         int id = idCounter.incrementAndGet();
-        note.setId(id);
+        note.setId(String.valueOf(id));
         notes.put(id, note);
         return note;
     }
